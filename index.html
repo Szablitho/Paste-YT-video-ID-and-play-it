@@ -111,10 +111,11 @@
   
       var done = false;
       function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING && !done) {
-          setTimeout(stopVideo, 6000);
-          done = true;
-        }
+// removed for show site off purposes/used only for testing page
+//         if (event.data == YT.PlayerState.PLAYING && !done) {
+//           setTimeout(stopVideo, 6000);
+//           done = true;
+//         }
         // if video wasn't found and wasnt buffered, alert user about it
         if(event.data == YT.PlayerState.UNSTARTED && !event.data == YT.PlayerState.CUED) {
           alert('Video wasn\'t found on youtube');
