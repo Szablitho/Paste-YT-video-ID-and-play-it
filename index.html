@@ -22,11 +22,33 @@
           flex-direction: column;
         }
       }
+      /* @media screen and (max-width: 767.9px) {
+        iframe {
+          max-height: 150px;
+          max-width: 300px ;
+        }
+      } */
+      /* @media screen and (min-width: 768px) {
+        iframe {
+          height: inherit;
+          width: inherit;
+        }
+      } */
+      /* https://avexdesigns.com/blog/responsive-youtube-embed
+       this doeant work, api doesnt even respond after i applied those css rules */
+      /* .video-container { position: relative; padding-bottom: 56.25%; padding-top: 30px; height: 0; overflow: hidden; }
+
+      .video-container iframe, .video-container object, .video-container embed { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+      } */
+
     </style>
   </head>
   <body>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
-    <div id="player"></div>
+    <div class="video-container">
+      <div id="player"></div>
+    </div>
     <input id="otherID" type="text" placeholder="Video ID">
     <button onclick="playAnotherVideo()">Play this video</button>
 
@@ -57,7 +79,8 @@
           videoId: vidid,
           events: {
             'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
+            'onStateChange': onPlayerStateChange,
+            'onError': onPlayerError
           }
         });
       }
@@ -66,16 +89,17 @@
       // function taking ID from input and call playVideo function
       const playAnotherVideo = () => {
         var ID = document.getElementById('otherID').value;
-        if(ID.length > 7) {
+        if(ID.length > 11) {
           const newID = ID.substr(-11);
-          console.log(ID);
-          console.log(newID);
           playVideo(newID);
         } else {
-        console.log(ID);
         playVideo(ID);
+        console.log(YT);
+        console.log(YT.Player);
+        // if(!YT.POST) { it's never falsy value - when video isnt loaded object exists anyways
+        //   alert('error connection'); // }
         }
-      }
+    }
 
       // 4. The API will call this function when the video player is ready.
       function onPlayerReady(event) {
@@ -85,45 +109,79 @@
       // 5. The API calls this function when the player's state changes.
       //    The function indicates that when playing a video (state=1),
       //    the player should play for six seconds and then stop.
-    //   //   onPlayerStateChange(event) {
-
-          //     if (event.data == YT.PlayerState.ENDED) {               
-          //         console.log("Video Ended");
-          //     }
-
-          //     if (event.data == YT.PlayerState.PLAYING) {             
-          //         console.log("Video Playing");
-          //     }
-
-          //     if (event.data == YT.PlayerState.PAUSED) {              
-          //         console.log("Video Paused");
-          //     }
-
-          //     if (event.data == YT.PlayerState.BUFFERING) {               
-          //         console.log("Video Buffering");
-          //     }
-
-          //     if (event.data == YT.PlayerState.CUED) {                
-          //         console.log("Video Cued");
-          //     }
-    //      }
-
-  
+     //   onPlayerStateChange(event) {
       var done = false;
       function onPlayerStateChange(event) {
-// removed for show site off purposes/used only for testing page
-//         if (event.data == YT.PlayerState.PLAYING && !done) {
-//           setTimeout(stopVideo, 6000);
-//           done = true;
-//         }
+        // if (event.data == YT.PlayerState.PLAYING && !done) {
+        //   setTimeout(stopVideo, 3000);
+        //   done = true;
+        // }
+                     if (event.data == YT.PlayerState.ENDED) {               
+                  console.log("Video Ended");
+              }
+
+              if (event.data == YT.PlayerState.PLAYING) {             
+                  console.log("Video Playing");
+                  let length = player.getDuration();
+                  let CurrentTime = player.getCurrentTime();
+                  let TimeLeft = length - CurrentTime;
+                  
+                  console.log(length); console.log(CurrentTime); console.log(TimeLeft);
+                  // if(TimeLeft <= Math.floor(60) ) {
+                  //   while(TimeLeft<=60 && TimeLeft > 0) {
+                  //     console.log(Math.floor(TimeLeft));
+                  //   }
+                  //   console.log("if works");
+                  // }
+              }
+
+              if (event.data == YT.PlayerState.PAUSED) {              
+                  console.log("Video Paused");
+              }
+
+              if (event.data == YT.PlayerState.BUFFERING) {               
+                  console.log("Video Buffering");
+              }
+
+              if (event.data == YT.PlayerState.CUED) {                
+                  console.log("Video Cued");
+              }
+              if(event.data == YT.PlayerState.UNSTARTED) {
+                console.log("Video Unstarted");
+              }
+
         // if video wasn't found and wasnt buffered, alert user about it
-        if(event.data == YT.PlayerState.UNSTARTED && !event.data == YT.PlayerState.CUED) {
-          alert('Video wasn\'t found on youtube');
-        }
+        // if(event.data !== YT.PlayerState.CUED  && event.data !== YT.PlayerState.PLAYING && event.data !== YT.PlayerState.BUFFERING && event.data !== YT.PlayerState.PAUSED && event.data == YT.PlayerState.UNSTARTED ) {             
+        //   setTimeout(warning,1000);
+        //   console.log('pop');
+        // appears even after loading video}
       }
+      // 6. Handling errors(mine)
+      function onPlayerError(event) {
+        if(event.data == 2) {
+          console.log('error2');
+          alert('error 2: ID isn\'t 11 characters or includes % or !');
+        };
+        if(event.data == 5) {
+          console.log('error5');
+          alert('error5: żądanego materiału nie można odtworzyć w odtwarzaczu HTML5 lub wystąpił inny błąd związany z odtwarzaczem HTML5.');
+        };
+        if(event.data == 100) {
+          console.log('error100');
+          alert('error100: nie znaleziono żądanego filmu. Ten błąd występuje, gdy film został usunięty (z dowolnego powodu) lub został oznaczony jako prywatny.');
+        };
+        if(event.data == 101 || event.data == 150) {
+          console.log('error101 or error 150');
+          alert('error 101 or error 150: właściciel żądanego filmu nie zezwala, by był on odtwarzany w odtwarzaczach umieszczanych na stronach.');
+        };
+      };
       function stopVideo() {
         player.stopVideo();
       }
+      function warning() {
+        alert('Video wasn\'t found on youtube');
+      }
+      // QkWOaqGn9Vg
     </script>
   </body>
 </html>
