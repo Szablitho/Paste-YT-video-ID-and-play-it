@@ -12,11 +12,37 @@
         align-items: center;
         min-height: 100vh;
       }
+      .videoContainer {
+        position: relative;
+        box-sizing: border-box;
+      }
       iframe {
         display: block;
-        margin: 10px;
+        margin: 0;
+        pointer-events: auto;
       }
-      
+      /* background of countdown */
+      .foreground {
+        top:0;
+        left:0;
+        right:0;
+        bottom: 0;
+        position: absolute;
+        pointer-events: none; 
+        background-color: rgba(0,0,0,0.5);
+        
+      }
+      .numberBlock {
+        text-align: center;
+        position: absolute;
+        height: 20px;
+        top: 30%;
+        left: 45%;
+        color: white;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 5em;
+      }
+      /* QkWOaqGn9Vg */
       @media only screen and (max-width:1023.9px) {
         body {
           flex-direction: column;
@@ -46,8 +72,10 @@
   </head>
   <body>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
-    <div class="video-container">
+    <div class="videoContainer">
       <div id="player"></div>
+      <!-- <div class="foreground"></div> -->
+      <!-- that div will be inserted by script on countdown -->
     </div>
     <input id="otherID" type="text" placeholder="Video ID">
     <button onclick="playAnotherVideo()">Play this video</button>
@@ -93,11 +121,8 @@
           const newID = ID.substr(-11);
           playVideo(newID);
         } else {
-        playVideo(ID);
-        console.log(YT);
-        console.log(YT.Player);
-        // if(!YT.POST) { it's never falsy value - when video isnt loaded object exists anyways
-        //   alert('error connection'); // }
+          playVideo(ID);
+          console.log(YT);
         }
     }
 
@@ -109,79 +134,133 @@
       // 5. The API calls this function when the player's state changes.
       //    The function indicates that when playing a video (state=1),
       //    the player should play for six seconds and then stop.
-     //   onPlayerStateChange(event) {
+
       var done = false;
       function onPlayerStateChange(event) {
         // if (event.data == YT.PlayerState.PLAYING && !done) {
         //   setTimeout(stopVideo, 3000);
         //   done = true;
         // }
-                     if (event.data == YT.PlayerState.ENDED) {               
-                  console.log("Video Ended");
-              }
+        if (event.data == YT.PlayerState.ENDED) {               
+          console.log("Video Ended");
+          //clears elements in DOM created by countdown()
+          removeCountdown();
+        }
 
-              if (event.data == YT.PlayerState.PLAYING) {             
-                  console.log("Video Playing");
-                  let length = player.getDuration();
-                  let CurrentTime = player.getCurrentTime();
-                  let TimeLeft = length - CurrentTime;
-                  
-                  console.log(length); console.log(CurrentTime); console.log(TimeLeft);
-                  // if(TimeLeft <= Math.floor(60) ) {
-                  //   while(TimeLeft<=60 && TimeLeft > 0) {
-                  //     console.log(Math.floor(TimeLeft));
-                  //   }
-                  //   console.log("if works");
-                  // }
-              }
+        if (event.data == YT.PlayerState.PLAYING) {             
+          console.log("Video Playing");
+        // countdown() is calculating how much time left to the end of video, will start on timeout
+            countdown();
+        }
+        if(event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.BUFFERING || event.data == YT.PlayerState.ENDED) {
+        }
 
-              if (event.data == YT.PlayerState.PAUSED) {              
-                  console.log("Video Paused");
-              }
+        if (event.data == YT.PlayerState.PAUSED) {              
+            console.log("Video Paused");
+        }
 
-              if (event.data == YT.PlayerState.BUFFERING) {               
-                  console.log("Video Buffering");
-              }
+        if (event.data == YT.PlayerState.BUFFERING) {               
+            console.log("Video Buffering");
+        }
 
-              if (event.data == YT.PlayerState.CUED) {                
-                  console.log("Video Cued");
-              }
-              if(event.data == YT.PlayerState.UNSTARTED) {
-                console.log("Video Unstarted");
-              }
-
-        // if video wasn't found and wasnt buffered, alert user about it
-        // if(event.data !== YT.PlayerState.CUED  && event.data !== YT.PlayerState.PLAYING && event.data !== YT.PlayerState.BUFFERING && event.data !== YT.PlayerState.PAUSED && event.data == YT.PlayerState.UNSTARTED ) {             
-        //   setTimeout(warning,1000);
-        //   console.log('pop');
-        // appears even after loading video}
+        if (event.data == YT.PlayerState.CUED) {                
+            console.log("Video Cued");
+        }
+        if(event.data == YT.PlayerState.UNSTARTED) {
+          console.log("Video Unstarted");
+        }
       }
       // 6. Handling errors(mine)
       function onPlayerError(event) {
         if(event.data == 2) {
           console.log('error2');
           alert('error 2: ID isn\'t 11 characters or includes % or !');
-        };
+        }
         if(event.data == 5) {
           console.log('error5');
           alert('error5: żądanego materiału nie można odtworzyć w odtwarzaczu HTML5 lub wystąpił inny błąd związany z odtwarzaczem HTML5.');
-        };
+        }
         if(event.data == 100) {
           console.log('error100');
           alert('error100: nie znaleziono żądanego filmu. Ten błąd występuje, gdy film został usunięty (z dowolnego powodu) lub został oznaczony jako prywatny.');
-        };
+        }
         if(event.data == 101 || event.data == 150) {
           console.log('error101 or error 150');
           alert('error 101 or error 150: właściciel żądanego filmu nie zezwala, by był on odtwarzany w odtwarzaczach umieszczanych na stronach.');
-        };
-      };
+        }
+      }
       function stopVideo() {
         player.stopVideo();
       }
       function warning() {
         alert('Video wasn\'t found on youtube');
       }
-      // QkWOaqGn9Vg
+      const whatLeft = () => {
+        let length = player.getDuration();
+        let CurrentTime = player.getCurrentTime()
+        let TimeLeft = length - CurrentTime - 10;
+
+       return TimeLeft; 
+      }
+      // Explaining how these functions work together to count down at the end of video
+
+      // There is defined TimeLeft of video by video length - CurrentVideoTime - 10s, then I used timeout with that as variable
+      // I catch a moment when start to countdown - setTimeout(func,video TimeLeft * 900); - should be 1000 but player switches state ealier so countdown has to start ealier too
+      //before countdown(), addForeground(), creates a darker background for number, but on top of YT player and creates centered blockNumber as div element, then countdownNumber() injects number from within loop from countdown() func
+      // then with for loop countdown to 0 with interval equal to 1s or nested timeout - place it in func?
+        //Note: Neither interval or nested Timeout didnt countdown on a reasonable and stable time, async function with promise does, it slows down exectuion of for loop
+        // here it is sleep() func making delay of for loop, source code and explanation of it below
+        //source code: https://javascript.plainenglish.io/javascript-slow-down-for-loop-9d1caaeeeeed
+      // within body there is placed countdown number(also as loop parameter)
+      // removeCountdown() removes previously created foreground and numberBlock for letting a user replay or switch video and still see good
+      
+      
+      const sleep = (time) => {
+        return new Promise((resolve) => setTimeout(resolve, time))
+      }
+      // const doSomething = async () => {
+      //   for (let i = 10; i > 0; i--) {
+      //     await sleep(1000)
+      //     console.log(i)
+      // }
+      //}
+      // doSomething is replaced by code downhere
+      const countdown = () => {
+        let timer = whatLeft(); // video is playing and time left to end is known
+          // async and await are neccesary for delaying execution of loop
+        let nestedTimeout = setTimeout( async () => { // gonna calculate how much to wait for starting countdown
+          addForeground(); //foreground and .numberBlock is created on top of YT player
+          for(let i = 10; i > 0; i--) {
+            await sleep(1000);
+            // shows number in a .numberBlock div element
+            countdownNumber(i);
+          }
+          }, timer * 900); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
+      }
+      //foreground is created here and styled by CSS, it is done once per video playback
+      const addForeground = () => {
+        const block = document.createElement("div");
+        block.classList.add("foreground");
+        const parent = document.querySelector(".videoContainer");
+        parent.appendChild(block);
+        const numberBlock = document.createElement("div");
+        numberBlock.classList.add("numberBlock");
+        parent.appendChild(numberBlock);
+      }
+      //these two functions are placing and later replacing number within previously created numberBlock
+      const countdownNumber = (i) => {
+        const numberBlock = document.querySelector(".numberBlock");
+        numberBlock.innerHTML = i;
+      }
+      // after countdown ends - (YT.PlayerState.ENDED) - then this removes background and number
+      const removeCountdown = () => {
+        const foreground = document.querySelectorAll(".foreground");
+        const numberBlock = document.querySelectorAll(".numberBlock");
+        foreground.forEach(el => el.remove());
+        numberBlock.forEach(el => el.remove());
+      }
+      //end of func
+      //FPrnYtCI9Gs
     </script>
   </body>
 </html>
