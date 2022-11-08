@@ -152,7 +152,10 @@
        // shows number in a .numberBlock div element
        countdownNumber(i);
      }
-     callback();
+
+      setTimeout(() => {
+	      callback();
+      }, 0);
      }, timer * 1000); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
    
  }
