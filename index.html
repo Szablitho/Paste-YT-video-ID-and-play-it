@@ -37,43 +37,75 @@
         position: absolute;
         height: 20px;
         top: 30%;
-        left: 45%;
+        left: 48%;
         color: white;
         font-family: Arial, Helvetica, sans-serif;
         font-size: 5em;
+        font-weight: bolder;
       }
       /* QkWOaqGn9Vg */
+      @media only screen and (min-width: 1024px) {
+        div[id="player"] {
+          margin-right: 20px;
+        }
+      }
       @media only screen and (max-width:1023.9px) {
         body {
           flex-direction: column;
         }
       }
-      /* @media screen and (max-width: 767.9px) {
-        iframe {
+       @media screen and (max-width: 767.9px) {
+        .videoContainer {
           max-height: 150px;
-          max-width: 300px ;
+          max-width: 300px;
         }
-      } */
-      /* @media screen and (min-width: 768px) {
-        iframe {
-          height: inherit;
-          width: inherit;
+        .videoContainer > iframe {
+          width: 100%;
+          height: 100%;
         }
-      } */
-      /* https://avexdesigns.com/blog/responsive-youtube-embed
-       this doeant work, api doesnt even respond after i applied those css rules */
-      /* .video-container { position: relative; padding-bottom: 56.25%; padding-top: 30px; height: 0; overflow: hidden; }
+        div[id="player"] {
+        margin-bottom: 20px;
+        font-weight: bolder;
+      }
+        input {
+          max-width: 40%;
+          height: auto;
+      }
+      }
+      div[id="player"] {
+        font-weight: bolder;
+      }
+      button {
+        background-color: rgb(0, 0, 0);
+        color: white;
 
-      .video-container iframe, .video-container object, .video-container embed { 
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-      } */
+      }
+      input, button{
+        margin: 10px 5px;
+        padding: 5px 15px;
+        font-family: Roboto,Noto,sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 24px;
+        border-radius: 20px;
+        text-align:center;
+      }
+      input {
+        background-color: black;
+        border: none;
+        box-shadow: none;
+        color: rgb(212, 212, 212);
+        border: none;
+        height: auto;
+        outline: none;
+      }
 
     </style>
   </head>
   <body>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
     <div class="videoContainer">
-      <div id="player"></div>
+      <div id="player">Your video will be played here. Please, have a try 😊</div>
       <!-- <div class="foreground"></div> -->
       <!-- that div will be inserted by script on countdown -->
     </div>
@@ -144,13 +176,13 @@
         if (event.data == YT.PlayerState.ENDED) {               
           console.log("Video Ended");
           //clears elements in DOM created by countdown()
-          removeCountdown();
+          // removeCountdown(); //moved into countdown() for better sync of execution
         }
 
         if (event.data == YT.PlayerState.PLAYING) {             
           console.log("Video Playing");
         // countdown() is calculating how much time left to the end of video, will start on timeout
-            countdown();
+            countdown(removeCountdown);
         }
         if(event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.BUFFERING || event.data == YT.PlayerState.ENDED) {
         }
@@ -195,13 +227,7 @@
       function warning() {
         alert('Video wasn\'t found on youtube');
       }
-      const whatLeft = () => {
-        let length = player.getDuration();
-        let CurrentTime = player.getCurrentTime()
-        let TimeLeft = length - CurrentTime - 10;
 
-       return TimeLeft; 
-      }
       // Explaining how these functions work together to count down at the end of video
 
       // There is defined TimeLeft of video by video length - CurrentVideoTime - 10s, then I used timeout with that as variable
@@ -213,7 +239,13 @@
         //source code: https://javascript.plainenglish.io/javascript-slow-down-for-loop-9d1caaeeeeed
       // within body there is placed countdown number(also as loop parameter)
       // removeCountdown() removes previously created foreground and numberBlock for letting a user replay or switch video and still see good
-      
+      const whatLeft = () => {
+        let length = player.getDuration();
+        let CurrentTime = player.getCurrentTime()
+        let TimeLeft = length - CurrentTime - 10;
+
+        return TimeLeft; 
+      }
       
       const sleep = (time) => {
         return new Promise((resolve) => setTimeout(resolve, time))
@@ -225,7 +257,7 @@
       // }
       //}
       // doSomething is replaced by code downhere
-      const countdown = () => {
+      const countdown = callback => {
         let timer = whatLeft(); // video is playing and time left to end is known
           // async and await are neccesary for delaying execution of loop
         let nestedTimeout = setTimeout( async () => { // gonna calculate how much to wait for starting countdown
@@ -235,8 +267,11 @@
             // shows number in a .numberBlock div element
             countdownNumber(i);
           }
-          }, timer * 900); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
+          callback();
+          }, timer * 1000); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
+        
       }
+
       //foreground is created here and styled by CSS, it is done once per video playback
       const addForeground = () => {
         const block = document.createElement("div");
@@ -261,6 +296,7 @@
       }
       //end of func
       //FPrnYtCI9Gs
+      //https://youtu.be/IL2cZDIwfms
     </script>
   </body>
 </html>
