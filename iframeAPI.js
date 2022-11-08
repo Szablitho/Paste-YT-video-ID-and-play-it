@@ -67,9 +67,10 @@
    if (event.data == YT.PlayerState.PLAYING) {             
      console.log("Video Playing");
    // countdown() is calculating how much time left to the end of video, will start on timeout
-       countdown(removeCountdown);
+      countdown(removeCountdown);
    }
    if(event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.BUFFERING || event.data == YT.PlayerState.ENDED) {
+      removeCountdown();
    }
 
    if (event.data == YT.PlayerState.PAUSED) {              
@@ -142,7 +143,7 @@
  // }
  //}
  // doSomething is replaced by code downhere
- const countdown = callback => {
+ const countdown = async callback => {
    let timer = whatLeft(); // video is playing and time left to end is known
      // async and await are neccesary for delaying execution of loop
    let nestedTimeout = setTimeout( async () => { // gonna calculate how much to wait for starting countdown
@@ -155,7 +156,7 @@
 
       setTimeout(() => {
 	      callback();
-      }, 0);
+      }, 2000); // Timeout helps to execute removeCountdown() after for loop at 100%chance
      }, timer * 1000); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
    
  }
@@ -165,17 +166,16 @@
    const block = document.createElement("div");
    block.classList.add("foreground");
    const parent = document.querySelector(".videoContainer");
-   parent.appendChild(block);
    const numberBlock = document.createElement("div");
    numberBlock.classList.add("numberBlock");
-   parent.appendChild(numberBlock);
+   parent.append(block,numberBlock);
  }
  //these two functions are placing and later replacing number within previously created numberBlock
  const countdownNumber = (i) => {
    const numberBlock = document.querySelector(".numberBlock");
    numberBlock.innerHTML = i;
  }
- // after countdown ends - (YT.PlayerState.ENDED) - then this removes background and number
+ // after countdown ends then this removes background and number
  const removeCountdown = () => {
    const foreground = document.querySelectorAll(".foreground");
    const numberBlock = document.querySelectorAll(".numberBlock");
