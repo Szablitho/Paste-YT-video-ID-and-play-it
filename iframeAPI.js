@@ -143,10 +143,10 @@
  // }
  //}
  // doSomething is replaced by code downhere
- const countdown = async callback => {
+ const countdown = async removeCountdown => {
    let timer = whatLeft(); // video is playing and time left to end is known
      // async and await are neccesary for delaying execution of loop
-   let nestedTimeout = setTimeout( async () => { // gonna calculate how much to wait for starting countdown
+    setTimeout( async () => { // gonna calculate how much to wait for starting countdown
      addForeground(); //foreground and .numberBlock is created on top of YT player
      for(let i = 10; i > 0; i--) {
        await sleep(1000);
@@ -155,7 +155,7 @@
      }
 
       setTimeout(() => {
-	      callback();
+	      removeCountdown();
       }, 2000); // Timeout helps to execute removeCountdown() after for loop at 100%chance
      }, timer * 1000); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
    
