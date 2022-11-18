@@ -116,19 +116,17 @@
 
  // Explaining how these functions work together to count down at the end of video
 
- // There is defined TimeLeft of video by video length - CurrentVideoTime - 10s, then I used timeout with that as variable
- // I catch a moment when start to countdown - setTimeout(func,video TimeLeft * 900); - should be 1000 but player switches state ealier so countdown has to start ealier too
+ // There is defined TimeLeft of video by video length - CurrentVideoTime; then I used timeout with that as variable
+ // I catch a moment when start to countdown - setTimeout(func,video TimeLeft * 1000 - 10000); substracting from timer is here to start function before video ends.
  //before countdown(), addForeground(), creates a darker background for number, but on top of YT player and creates centered blockNumber as div element, then countdownNumber() injects number from within loop from countdown() func
- // then with for loop countdown to 0 with interval equal to 1s or nested timeout - place it in func?
-   //Note: Neither interval or nested Timeout didnt countdown on a reasonable and stable time, async function with promise does, it slows down exectuion of for loop
-   // here it is sleep() func making delay of for loop, source code and explanation of it below
+ // then with for loop countdown to 0 with sleep() func making delay of for loop, source code and explanation of it below
    //source code: https://javascript.plainenglish.io/javascript-slow-down-for-loop-9d1caaeeeeed
  // within body there is placed countdown number(also as loop parameter)
  // removeCountdown() removes previously created foreground and numberBlock for letting a user replay or switch video and still see good
  const whatLeft = () => {
    let length = player.getDuration();
    let CurrentTime = player.getCurrentTime()
-   let TimeLeft = length - CurrentTime - 10;
+   let TimeLeft = length - CurrentTime;
 
    return TimeLeft; 
  }
@@ -143,21 +141,22 @@
  // }
  //}
  // doSomething is replaced by code downhere
- const countdown = async removeCountdown => {
+ const countdown = removeCountdown => {
    let timer = whatLeft(); // video is playing and time left to end is known
      // async and await are neccesary for delaying execution of loop
-    setTimeout( async () => { // gonna calculate how much to wait for starting countdown
+     setTimeout( async () => { // gonna calculate how much to wait for starting countdown
      addForeground(); //foreground and .numberBlock is created on top of YT player
-     for(let i = 10; i > 0; i--) {
-       await sleep(1000);
+     for(; timer > 0; timer--) {
+      timer = whatLeft(); // refreshing timer for accurate,real time countdown
+       await sleep(1000); // delay of displaying number
        // shows number in a .numberBlock div element
-       countdownNumber(i);
+       countdownNumber(timer);
      }
 
       setTimeout(() => {
 	      removeCountdown();
-      }, 2000); // Timeout helps to execute removeCountdown() after for loop at 100%chance
-     }, timer * 1000); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
+      }, 5000); // Timeout helps to execute removeCountdown() after for loop at 100%chance
+     }, timer * 1000 - 10000); //time accepted by Timeout is in miliseconds, so I multiply it to get seconds
    
  }
 
@@ -173,7 +172,7 @@
  //these two functions are placing and later replacing number within previously created numberBlock
  const countdownNumber = (i) => {
    const numberBlock = document.querySelector(".numberBlock");
-   numberBlock.innerHTML = i;
+   numberBlock.innerHTML = Math.floor(i);
  }
  // after countdown ends then this removes background and number
  const removeCountdown = () => {
